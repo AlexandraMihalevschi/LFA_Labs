@@ -1,4 +1,4 @@
-# Laboratory Work: Intro to formal languages. Regular grammars. Finite Automata.\
+# Laboratory Work: Intro to formal languages. Regular grammars. Finite Automata.
 
 **Course:** Formal Languages & Finite Automata\
 **Author:** Mihalevschi Alexandra
@@ -125,7 +125,7 @@ def to_finite_automaton(self):
 
 ### Example Usage
 
-````python
+```python
 # Define the grammar
 VN = {"S", "A", "B", "C"}
 VT = {"a", "b"}
@@ -151,7 +151,7 @@ fa = grammar.to_finite_automaton()
 test_strings = ["aab", "aaa", "abb"]
 for ts in test_strings:
     print(f"Does FA accept '{ts}'? {fa.accepts(ts)}")
-    ```
+```
 
 ## Results
 
@@ -194,4 +194,3 @@ This laboratory work provided insight into formal languages and automata theory.
 - Introduction of Finite Automata - GeeksforGeeks - https://www.geeksforgeeks.org/introduction-of-finite-automata/
 - Laboratory work guide - https://github.com/filpatterson/DSL_laboratory_works/blob/master/1_RegularGrammars/task.md
 - Formal languages and compiler design - Irina Cojuhari - presenation
-````
