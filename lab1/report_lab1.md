@@ -103,30 +103,34 @@ class FiniteAutomaton:
 
 ### Conversion from Grammar to Finite Automaton
 
+The conversion from Grammar to Finite Automaton is implemented as follows:
+
 ```python
 def to_finite_automaton(self):
-    """Converts the grammar into a Finite Automaton (FA)"""
-    states = set(self.VN)  # Non-terminals become states
-    alphabet = set(self.VT)  # Alphabet remains the same
-    transitions = {}
 
-    for lhs, rhs_list in self.P.items():
-        for rhs in rhs_list:
-            if len(rhs) == 1:  # Terminal transition
-                transitions[(lhs, rhs[0])] = rhs
-            else:  # Non-terminal transition
-                transitions[(lhs, rhs[0])] = rhs[1]
+        transitions = {}
+        for lhs, rules in self.P.items():
+            for rhs in rules:
+                key = (lhs, rhs[0])
+                if len(rhs) == 1:
+                    transitions.setdefault(key, set()).add("q_f")
+                elif len(rhs) == 2:
+                    transitions.setdefault(key, set()).add(rhs[1])
+                else:
+                    pass
 
-    start_state = self.start_symbol
-    final_states = {s for s in self.VN if any(r in self.VT for r in self.P.get(s, []))}
 
-    return FiniteAutomaton(states, alphabet, transitions, start_state, final_states)
+        states = set(self.VN)
+        states.add("q_f")
+        alphabet = set(self.VT)
+        start_state = self.start_symbol
+        final_states = {"q_f"}
+        return FiniteAutomaton(states, alphabet, transitions, start_state, final_states)
 ```
 
 ### Example Usage
 
 ```python
-# Define the grammar
 VN = {"S", "A", "B", "C"}
 VT = {"a", "b"}
 P = {
@@ -136,21 +140,22 @@ P = {
     "C": [["a"], ["b", "S"]]
 }
 
-# Create a Grammar instance
 grammar = Grammar(VN, VT, P, "S")
 
-# Generate 5 valid strings
+
 print("Generated strings:")
 for s in grammar.generate_n_strings():
     print(s)
 
-# Convert grammar to finite automaton
 fa = grammar.to_finite_automaton()
 
-# Test FA string acceptance
-test_strings = ["aab", "aaa", "abb"]
-for ts in test_strings:
-    print(f"Does FA accept '{ts}'? {fa.accepts(ts)}")
+print("\nEnter strings to check (or 'exit'):")
+while True:
+    input_string = input("Enter string: ").strip()
+    if input_string.lower() == 'exit':
+        break
+    is_valid = fa.accepts(input_string)
+    print(f"String '{input_string}' is {'valid' if is_valid else 'invalid'}")
 ```
 
 ## Results
@@ -163,27 +168,45 @@ for ts in test_strings:
 
 **Output nr.1**
 
-Generated Strings:
-abaababababaaa
-aaa
-abaaa
+Generated strings:
 abababaabaaa
-aabaaa
-Does FA accept 'aab'? False
-Does FA accept 'aaa'? False
-Does FA accept 'abb'? False
+abaababaabaaa
+ababaabaaa
+ababaabaaa
+abababaabaabababaaa
+
+Enter strings to check (or 'exit'):
+Enter string: abababaabaaa
+String 'abababaabaaa' is valid
+Enter string: aS
+String 'aS' is invalid
+Enter string: asddadadad
+String 'asddadadad' is invalid
+Enter string: aaa
+String 'aaa' is valid
+Enter string: a
+String 'a' is invalid
+Enter string: exit
 
 **Output nr.2**
 
-Generated Strings:
-abaababaabababaabaababababaabababaaa
-aabaaa
-abaabababaababaabaaa
+Generated strings:
+aabaababababaababaaa
+abababaabaaa
+abaaa
+abababaababababaaa
 aaa
-ababaababababaababaaa
-Does FA accept 'aab'? False
-Does FA accept 'aaa'? False
-Does FA accept 'abb'? False
+
+Enter strings to check against the grammar (type 'exit' to quit):
+Enter string: aaa
+String 'aaa' is valid according to the grammar.
+Enter string: a
+String 'a' is invalid according to the grammar.
+Enter string: abaaa
+String 'abaaa' is valid according to the grammar.
+Enter string: aabaababababaababaaa
+String 'aabaababababaababaaa' is valid according to the grammar.
+Enter string: exit
 
 ## Conclusions
 
@@ -193,4 +216,4 @@ This laboratory work provided insight into formal languages and automata theory.
 
 - Introduction of Finite Automata - GeeksforGeeks - https://www.geeksforgeeks.org/introduction-of-finite-automata/
 - Laboratory work guide - https://github.com/filpatterson/DSL_laboratory_works/blob/master/1_RegularGrammars/task.md
-- Formal languages and compiler design - Irina Cojuhari - presenation
+- Formal languages and compiler design - Irina Cojuhari - presentation
