@@ -168,7 +168,7 @@ while True:
 
 **Output nr.1**
 
-Generated strings:
+`Generated strings:
 abababaabaaa
 abaababaabaaa
 ababaabaaa
@@ -187,10 +187,11 @@ String 'aaa' is valid
 Enter string: a
 String 'a' is invalid
 Enter string: exit
+`
 
 **Output nr.2**
 
-Generated strings:
+`Generated strings:
 aabaababababaababaaa
 abababaabaaa
 abaaa
@@ -207,6 +208,7 @@ String 'abaaa' is valid according to the grammar.
 Enter string: aabaababababaababaaa
 String 'aabaababababaababaaa' is valid according to the grammar.
 Enter string: exit
+`
 
 ## Conclusions
 
