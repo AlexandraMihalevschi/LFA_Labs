@@ -1,1 +1,0 @@
-        """Recursively generates a valid string from the grammar"""
