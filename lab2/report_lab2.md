@@ -288,6 +288,8 @@ A file named dfa.dot will be generated.
 
 ![The manual created output](/outputs/manualDFA.png)
 
+The expected graph outcome (or at least something similar).
+
 ## Output
 
 The FA is deterministic: False <br>
@@ -298,6 +300,12 @@ DFA States: ['A', 'B', 'C', 'D'] <br>
 DFA Transitions: {'A': {'a': 'B'}, 'B': {'a': 'B', 'b': 'C'}, 'C': {'a': 'C', 'b': 'D'}, 'D': {'a': 'D'}} <br>
 DFA Final States: {'D'} <br>
 DFA DOT file has been generated as dfa.dot. <br>
+
+Grammar Analysis Results: <br>
+Non-terminals (VN): {'B', 'A', 'S', 'C'} <br>
+Terminals (VT): {'b', 'a'} <br>
+Productions (P): ['S → aA', 'A → bS', 'S → aB', 'B → aC', 'C → a', 'C → bS'] <br>
+Grammar Classification: Type 3 (Regular) <br>
 
 ![The generated output](/outputs/generatedDFA.png)
 
