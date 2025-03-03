@@ -5,17 +5,37 @@ class Grammar:
         self.productions = productions
 
     def classify(self):
-        # Check if the grammar is regular
-        # productions are of the form "A → aB"
+        is_regular = True
+        is_context_free = True
+        is_context_sensitive = True
+
         for production in self.productions:
             lhs, rhs = production.split('→')  # Split the rule into lhs and rhs
             lhs = lhs.strip()  # Remove any extra spaces
             rhs = rhs.strip()
-            if len(lhs) != 1 or not lhs.isupper():  # LHS should be a single non-terminal
-                return "Invalid Grammar"
-            if not (rhs.islower() or (len(rhs) == 2 and rhs[0].islower() and rhs[1].isupper())):
-                return "Invalid Grammar"
-        return "Type 3 (Regular)"  # Since the grammar satisfies regular grammar condition
+
+            # Type 3 (Regular Grammar) check
+            if not (len(lhs) == 1 and lhs.isupper() and 
+                    (rhs.islower() or (len(rhs) == 2 and rhs[0].islower() and rhs[1].isupper()))):
+                is_regular = False  # If any rule does not match the regular grammar format
+
+            # Type 2 (Context-Free Grammar) check
+            if not (len(lhs) == 1 and lhs.isupper()):
+                is_context_free = False  # If any rule has a left-hand side longer than 1 symbol
+
+            # Type 1 (Context-Sensitive Grammar) check
+            if len(lhs) > len(rhs):
+                is_context_sensitive = False  # If any LHS is longer than RHS, it's not context-sensitive
+
+        # Determine the grammar type based on the checks
+        if is_regular:
+            return "Type 3 (Regular)"
+        elif is_context_free:
+            return "Type 2 (Context-Free)"
+        elif is_context_sensitive:
+            return "Type 1 (Context-Sensitive)"
+        else:
+            return "Type 0 (Recursively Enumerable)"
 
 class FiniteAutomaton:
     def __init__(self, states, alphabet, transitions, start_state, final_states):
