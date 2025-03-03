@@ -163,3 +163,28 @@ print(f"DFA Final States: {dfa_final_states}")
 # Generate DFA DOT file
 fa.write_dfa_to_dot(dfa_states, dfa_transitions, dfa_final_states)
 print("DFA DOT file has been generated as dfa.dot.")
+
+# Define the grammar components for the given variant
+vn = {'S', 'A', 'B', 'C'}
+vt = {'a', 'b'}
+p = [
+    'S → aA',
+    'A → bS',
+    'S → aB',
+    'B → aC',
+    'C → a',
+    'C → bS'
+]
+
+# Create a Grammar instance
+specific_grammar = Grammar(vn, vt, p)
+
+# Classify the grammar
+grammar_type = specific_grammar.classify()
+
+# Print results
+print("\nGrammar Analysis Results:")
+print("Non-terminals (VN):", vn)
+print("Terminals (VT):", vt)
+print("Productions (P):", p)
+print("Grammar Classification:", grammar_type)
