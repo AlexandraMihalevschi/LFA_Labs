@@ -79,9 +79,11 @@ class FiniteAutomaton:
         state_map = {frozenset([self.start_state]): 'A'}
         unprocessed_states = [frozenset([self.start_state])]  # List to keep track of states to process
 
+        print("NFA to DFA State Mapping:")
         while unprocessed_states:
             current_state = unprocessed_states.pop()
             current_state_name = state_map[current_state]
+            print(f"NFA State: {sorted(current_state)} -> DFA State: {current_state_name}")
 
             for symbol in self.alphabet:
                 next_state = set()
@@ -109,7 +111,6 @@ class FiniteAutomaton:
             f.write("digraph DFA {\n")
             f.write("    rankdir=LR;\n")
             f.write("    node [shape = circle];\n")
-
 
             for state in dfa_states:
                 if state in dfa_final_states:
