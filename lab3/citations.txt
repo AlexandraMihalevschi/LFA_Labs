@@ -1,1 +1,0 @@
-Johnson, A., and Williams, B., "Data Science for Healthcare," in Proc. of the 2022 International Conference on Data Science, Paris, France, 2022, pp. 45-50.

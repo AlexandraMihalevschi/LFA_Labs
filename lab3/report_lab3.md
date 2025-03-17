@@ -75,122 +75,243 @@ The primary objectives of this laboratory work were:
 
 ## Implementation Description
 
-The implementation consists of a Python script that uses regular expressions to define patterns for different token types. The lexer processes a given text and extracts information such as:
+The provided code is a Python implementation of a lexer (tokenizer) for a structured text format. The lexer is designed to recognize and tokenize various constructs from the input string, such as numbers, mathematical operations, shapes, and mathematical functions.
 
-- AUTHOR: Identifies the author names in the citation.
-- TITLE: Extracts the title of the work.
-- JOURNAL: Identifies the journal name.
-- VOLUME: Recognizes volume numbers in the citation.
-- ISSUE: Extracts issue numbers.
-- PAGES: Identifies page ranges.
-- MONTH_YEAR: Recognizes the publication month and year.
-- DOI: Extracts the Digital Object Identifier (DOI).
-- BOOK: Identifies book references and edition details.
-- CONFERENCE: Recognizes conference-related details.
+This code defines a lexer (or tokenizer) that breaks down an input string into a series of tokens. It handles a variety of constructs such as numbers, mathematical operations, shapes, and mathematical functions like sin(), cos(), log(), and others. The lexer recognizes these constructs from the input string and converts them into tokens that can later be used for further processing, such as evaluating expressions or performing calculations.
 
-The core functionality is provided by the CitationLexer class. The tokenize method applies regular expressions to the text and stores matched values in a dictionary, categorized by token type. The display_tokens method prints the found tokens for review.
+### Core Components:
 
-### Code overview
+The core components of the code include:
+
+1.  **Token Class**: A class to represent a token with a specific type and value.
+2.  **Lexer Class**: The main lexer that scans the input string and generates tokens.
+3.  **Math Functions and Shapes**: The lexer is capable of recognizing specific math functions (such as sin, cos, log, etc.) and geometric shapes (such as rectangle, circle, etc.).
+4.  **Main Function**: The entry point of the code, which takes an input string, processes it through the lexer, and prints the resulting tokens.
+
+---
+
+### Classes and Methods
+
+#### 1\. **Token Class**
+
+The `Token` class is a simple structure that holds information about a token. Each token consists of:
+
+- **type**: A string that represents the type of the token (e.g., INTEGER, FLOAT, PLUS, MINUS, etc.).
+- **value**: The actual value of the token, which could be a number (e.g., 10, 2.5) or a string representing the function/operation (e.g., sin, cos, area, etc.).
 
 ```python
-import re
-from typing import Dict, List
+class Token:
+    def __init__(self, type, value):
+        self.type = type
+    self.value = value
 
-# Token types
-TOKEN_TYPES = {
-    "AUTHOR": r"([A-Z]\.?[A-Z]?\.\s?[A-Za-z]+(?:,\s[A-Z]\.?[A-Z]?\.\s?[A-Za-z]+)*(?:,\set\sal\.)?)",
-    "TITLE": r"“([^”]+)”|\"([^\"]+)",
-    "JOURNAL": r"([A-Za-z.\s]+),",
-    "VOLUME": r"vol\.?\s(\d+)",
-    "ISSUE": r"no\.?\s(\d+)",
-    "PAGES": r"pp\.?\s(\d+[-–]\d+)",
-    "MONTH_YEAR": r"([A-Za-z]+)\.?\s(\d{4})",
-    "DOI": r"doi:\s(\d{2}\.\d{4,9}/[\w.]+)",
-    "BOOK": r"([A-Za-z\s]+),\s(\d+(?:rd|th|st|nd)\sed\.)",
-    "CONFERENCE": r"in\s([^,]+),\s([A-Za-z\s]+),\s(\d{4})"
-}
-
-class CitationLexer:
-    def __init__(self, text: str):
-        self.text = text
-        self.tokens: Dict[str, List[str]] = {}
-
-    def tokenize(self) -> Dict[str, List[str]]:
-        for token_type, pattern in TOKEN_TYPES.items():
-            matches = re.findall(pattern, self.text)
-            if matches:
-                if isinstance(matches[0], tuple):
-                    matches = [" ".join(match).strip() for match in matches if any(match)]
-                self.tokens[token_type] = matches
-        return self.tokens
-
-    def display_tokens(self):
-        for token_type, values in self.tokens.items():
-            print(f"{token_type}: {', '.join(values)}")
-
-if __name__ == "__main__":
-    with open("lab3/citations.txt", "r", encoding="utf-8") as file:
-        citation_text = file.read()
-
-    lexer = CitationLexer(citation_text)
-    tokens = lexer.tokenize()
-    lexer.display_tokens()
+    def __repr__(self):
+        return f"Token({self.type}, {repr(self.value)})"`
 ```
 
-This code snippet demonstrates the implementation of a lexer for processing citations. Here's a breakdown of the key components:
+#### 2\. **Lexer Class**
 
-1. **Regular Expressions (Regex)**: Each token type (author, title, journal, etc.) is associated with a specific regex pattern that matches the desired text format.
-2. **CitationLexer Class**: This class is responsible for applying the regex patterns to the input text and categorizing the matched parts as tokens.
-3. **Tokenization**: The `tokenize` method matches the regex patterns against the input text and stores the results in a dictionary, where the keys are token types (e.g., AUTHOR, TITLE), and the values are lists of matched lexemes.
-4. **Display Tokens**: The `display_tokens` method prints the categorized tokens to the console, allowing the user to verify the tokenization process.
+The `Lexer` class is the core of the lexer functionality. It is responsible for scanning the input text, identifying different components, and returning corresponding tokens.
 
-### Workflow
+**Attributes:**
 
-1.  **Importing Required Libraries:** The code begins by importing two important modules: re and typing.
+- **text**: The input string that the lexer will tokenize.
+- **pos**: The current position of the lexer within the input string.
+- **current_char**: The current character being processed in the string.
 
-- `re` is Python’s module for working with regular expressions. It allows you to search for patterns in strings and find all occurrences that match the given pattern.
-- `typing` is used to define the expected data types for variables and function arguments. In this case, it helps define that the tokens are stored in a dictionary where each key is a string (the token type), and the associated value is a list of strings (the actual token values).
+**Methods:**
 
-2.  **Defining Token Types:** The code defines a dictionary called `TOKEN_TYPES` that contains regular expressions for various token types. Each token type corresponds to a specific pattern that the lexer will use to identify and extract the corresponding information from the input text.
+- **advance()**: Moves the lexer to the next character in the input string.
+- **skip_whitespace()**: Skips any whitespace characters in the input.
+- **number()**: Recognizes numbers (integers, floats, and imaginary numbers) from the input string.
+- **shape()**: Recognizes geometric shape names from the input.
+- **operation()**: Recognizes operations such as area, perimeter, and scale.
+- **math_function()**: Recognizes mathematical functions such as sin, cos, log, pow, sqrt, etc.
+- **get_next_token()**: The main method of the lexer that processes the input and returns corresponding tokens.
 
-3.  **CitationLexer Class:** The `CitationLexer` class is the core of the lexer. It takes a text input and uses the defined token types to identify and extract relevant information from the text.
-    The constructor method initializes the CitationLexer object with the input text (text) containing citations and an empty dictionary (tokens) to store the matched tokens. The `tokenize` method applies the regular expressions defined in `TOKEN_TYPES` to the input text and stores the matched tokens in the tokens dictionary. The `display_tokens` method prints the found tokens for review.
+```python
+class Lexer:
+    def __init__(self, text):
+        self.text = text
+        self.pos = 0
+        self.current_char = self.text[self.pos] if self.text else None
 
-4.  **Main Execution:** The code reads the citation text from a file named "citations.txt" and passes it to the CitationLexer class. The lexer processes the text and displays the identified tokens.
+    def advance(self):
+        self.pos += 1
+        self.current_char = self.text[self.pos] if self.pos < len(self.text) else None
 
-## Results
+    def skip_whitespace(self):
+        while self.current_char is not None and self.current_char.isspace():
+            self.advance()
 
-After running the code, the following **results are expected**:
+    def number(self):
+        result = ''
+        is_float = False
+        is_imaginary = False
 
-Imagine the content of `citations.txt` contains the following citation:
+        while self.current_char is not None and (self.current_char.isdigit() or self.current_char in '.i'):
+            if self.current_char == '.':
+                is_float = True
+            elif self.current_char == 'i':
+                is_imaginary = True
+                self.advance()
+                break  # Stop parsing further, as 'i' should be at the end of a number
 
-    Smith J., “Advanced Python Programming,” Journal of Python Studies, vol. 5, no. 3, pp. 123-125, 2021, doi: 10.1234/abcd.5678
+            result += self.current_char
+            self.advance()
 
-The ``tokenize` method will identify the following tokens:
+        if is_imaginary:
+            return Token("IMAGINARY", complex(0, float(result)))  # Convert "2i" into complex(0,2)
+        elif is_float:
+            return Token("FLOAT", float(result))
+        else:
+            return Token("INTEGER", int(result))
 
-    AUTHOR: Smith J.
-    TITLE: Advanced Python Programming
-    JOURNAL: Journal of Python Studies
-    VOLUME: 5
-    ISSUE: 3
-    PAGES: 123-125
-    MONTH_YEAR: 2021
-    DOI: 10.1234/abcd.5678
+    def shape(self):
+        shapes = ["rectangle", "square", "circle", "triangle", "pentagon", "trapezoid"]
+        for shape in shapes:
+            if self.text[self.pos:self.pos + len(shape)] == shape:
+                self.pos += len(shape)
+                self.current_char = self.text[self.pos] if self.pos < len(self.text) else None
+                return Token(shape.upper(), shape)
+        return None
+
+    def operation(self):
+        operations = ["area", "perimeter", "scale"]
+        for op in operations:
+            if self.text[self.pos:self.pos + len(op)] == op:
+                self.pos += len(op)
+                self.current_char = self.text[self.pos] if self.pos < len(self.text) else None
+                return Token(op.upper(), op)
+        return None
+
+    def math_function(self):
+        functions = ["sin", "cos", "tan", "cotan", "log", "pow", "sqrt"]
+        for func in functions:
+            if self.text[self.pos:self.pos + len(func)] == func:
+                self.pos += len(func)
+                self.current_char = self.text[self.pos] if self.pos < len(self.text) else None
+                return Token(func.upper(), func)
+        return None
+
+    def get_next_token(self):
+        while self.current_char is not None:
+            if self.current_char.isspace():
+                self.skip_whitespace()
+                continue
+
+            if self.current_char == ':':  # Handle colon as a token separator
+                self.advance()
+                continue
+
+            if self.current_char == '?':  # Handle the question mark
+                self.advance()
+                return Token("QUESTION", '?')
+
+            if self.current_char == '=':  # Handle the equal sign as a token
+                self.advance()
+                return Token("EQUALS", '=')
+
+            if self.current_char.isdigit() or self.current_char in '.i':
+                return self.number()
+
+            if self.current_char.isalpha():
+                shape_token = self.shape()
+                if shape_token:
+                    return shape_token
+
+                operation_token = self.operation()
+                if operation_token:
+                    return operation_token
+
+                math_func_token = self.math_function()
+                if math_func_token:
+                    return math_func_token
+
+            operators = {'+': "PLUS", '-': "MINUS", '*': "MULTIPLY", '/': "DIVIDE"}
+            if self.current_char in operators:
+                token = Token(operators[self.current_char], self.current_char)
+                self.advance()
+                return token
+
+            # Handle opening parenthesis for functions like sin(), cos(), etc.
+            if self.current_char == '(':
+                self.advance()
+                return Token("OPEN_PAREN", '(')
+
+            # Handle closing parenthesis for functions like sin(), cos(), etc.
+            if self.current_char == ')':
+                self.advance()
+                return Token("CLOSE_PAREN", ')')
+
+            raise ValueError(f"Invalid character: {self.current_char}")
+
+        return None
+```
+
+#### 3\. **Main**
+
+The `main()` function serves as the entry point of the program. It interacts with the user to get an input string and then processes it through the lexer. The process includes:
+
+- Prompting the user to enter a string (e.g., `rectangle: 2.5 5.8 area=? sin(45) log(2)`).
+- Passing the input string to the `Lexer` class.
+- Iterating through the tokens generated by the lexer and printing them out.
+
+---
+
+### Detailed Functionality
+
+#### Handling Numbers:
+
+- The lexer handles both integer and floating-point numbers by reading the digits and checking for a decimal point (`.`). If it encounters an imaginary unit (`i`), it recognizes the number as a complex number (e.g., `3i` is treated as `complex(0, 3)`).
+
+#### Recognizing Mathematical Functions:
+
+- The lexer recognizes standard mathematical functions like `sin`, `cos`, `log`, `pow`, `sqrt` from the input string. It checks for the presence of these function names and, upon recognizing them, returns the corresponding token.
+
+#### Recognizing Shapes:
+
+- Geometric shapes like `rectangle`, `circle`, `square`, `triangle`, etc., are identified by the lexer. The lexer compares substrings from the input with a predefined list of shapes. If a match is found, it returns a token with the corresponding shape type.
+
+#### Recognizing Operations:
+
+- The lexer recognizes operations like `area`, `perimeter`, and `scale`, which are commonly associated with shapes in geometry or calculations.
+
+#### Handling Operators:
+
+- The lexer handles basic mathematical operators such as `+`, `-`, `*`, and `/` by checking if the current character in the input matches any of these symbols.
+
+#### Parentheses:
+
+- The lexer handles parentheses, which are commonly used in mathematical functions like `sin(45)` or `log(2)`. It returns tokens for opening parentheses (`OPEN_PAREN`) and closing parentheses (`CLOSE_PAREN`) to mark the start and end of function arguments.
+
+#### Error Handling:
+
+- The lexer raises a `ValueError` if it encounters an invalid character in the input string, ensuring that any unexpected characters are flagged during the tokenization
+
+## Expected Results
+
+When running this lexer code, the expected result is that the input string will be tokenized into a sequence of meaningful tokens, each representing a distinct element of the input. The lexer processes numbers, operations, functions, shapes, parentheses, and special characters, converting them into tokens that can be further analyzed or evaluated.
+
+For numbers, the lexer will correctly identify integers, floating-point numbers, and complex numbers. For example, the input `2`, `2.5`, and `3i` will be tokenized as `Token(INTEGER, 2)`, `Token(FLOAT, 2.5)`, and `Token(IMAGINARY, complex(0, 3))` respectively. If the input contains mathematical functions like `sin()`, `cos()`, `log()`, or others, these will be recognized as well. For instance, `sin(45)` will produce the tokens `Token(SIN, 'sin')`, `Token(OPEN_PAREN, '(')`, `Token(INTEGER, 45)`, and `Token(CLOSE_PAREN, ')')`.
+
+Geometric shapes such as `rectangle`, `circle`, and `triangle` are also recognized and tokenized, with inputs like `rectangle` generating the token `Token(RECTANGLE, 'rectangle')`. Similarly, if the input includes operations such as `area`, `perimeter`, or `scale`, these will be tokenized as well, like `Token(AREA, 'area')`.
+
+The lexer also handles basic operators like `+`, `-`, `*`, and `/`, recognizing them as `Token(PLUS, '+')`, `Token(MINUS, '-')`, and so on. Parentheses are treated as individual tokens, with `(` and `)` being tokenized as `Token(OPEN_PAREN, '(')` and `Token(CLOSE_PAREN, ')')`.
+
+Special characters like colons (`:`), equal signs (`=`), and question marks (`?`) are also tokenized, so `:` becomes `Token(COLON, ':')`, `=` is tokenized as `Token(EQUALS, '=')`, and `?` as `Token(QUESTION, '?')`.
+
+If the lexer encounters any invalid characters that don't match known token types, it will raise a `ValueError` to signal an error. For example, an invalid character like `@` would trigger a `ValueError: Invalid character: @`.
 
 ## Output
 
-citations.txt content:
+Input:
 
-    Smith J., “Advanced Python Programming,” Journal of Python Studies, vol. 5, no. 3, pp. 123-125, 2021, doi: 10.1234/abcd.5678
+    Enter your input (e.g., 'rectangle: 2.5 5.8 area=? sin(45) log(2)'): rectangle: 5i 10.23 area=? sin(30) cos(60*2) log(10/23)
 
 Output:
 
-    TITLE: Advanced Python Programming,
-    JOURNAL: Smith J., Advanced Python Programming,  Journal of Python Studies
-    VOLUME: 5
-    ISSUE: 3
-    PAGES: 123-125
-    DOI: 10.1234/abcd.5678
+    Tokens: [Token(RECTANGLE, 'rectangle'), Token(IMAGINARY, 5j), Token(FLOAT, 10.23), Token(AREA, 'area'), Token(EQUALS, '='), Token(QUESTION, '?'), Token(SIN, 'sin'), Token(OPEN_PAREN, '('), Token(INTEGER, 30), Token(CLOSE_PAREN, ')'), Token(COS, 'cos'), Token(OPEN_PAREN, '('), Token(INTEGER, 60), Token(MULTIPLY, '*'), Token(INTEGER, 2), Token(CLOSE_PAREN, ')'), Token(LOG, 'log'), Token(OPEN_PAREN, '('), Token(INTEGER, 10), Token(DIVIDE, '/'), Token(INTEGER, 23), Token(CLOSE_PAREN, ')')]
 
 ## Conclusions
 
@@ -202,6 +323,6 @@ Overall, the lab not only solidified my theoretical knowledge of lexical analysi
 
 ## References
 
-- Introduction of Finite Automata - GeeksforGeeks - https://www.geeksforgeeks.org/introduction-of-finite-automata/
 - Laboratory work guide - https://github.com/filpatterson/DSL_laboratory_works
-- Finite automata. Part 1- Irina Cojuhari - presentation
+- Python documentation - https://docs.python.org/3/
+- Tutorial on lexer in Python - https://medium.com/@pythonmembers.club/building-a-lexer-in-python-a-tutorial-3b6de161fe84
