@@ -28,10 +28,33 @@ def generate_strings_from_regex(regex):
                 elif char == "?":
                     result.append(prev if random.choice([True, False]) else "")
 
-            elif char == "|":  # Handle OR
-                options = expression.split("|")
+            elif char == "|":  # Handle OR operator correctly
+                options = []
+                current_option = ""
+
+                options.append(result.pop() if result else "")
+
+                while index < len(expression) and expression[index] != ")":
+                    if expression[index] == "|":
+                        index += 1  # Skip the | character
+                        current_option = ""
+                        while index < len(expression) and expression[index] != "|" and expression[index] != ")":
+                            current_option += expression[index]
+                            index += 1
+                        options.append(current_option)
+                    else:
+                        index += 1
                 result.append(random.choice(options))
-                break
+
+            elif char == "^":  # Handle power operator
+                prev = result.pop() if result else ""
+                power_value = ""
+                index += 1
+                while index < len(expression) and expression[index].isdigit():
+                    power_value += expression[index]
+                    index += 1
+                index -= 1
+                result.append(prev * int(power_value))
 
             else:  # Literal characters
                 result.append(char)
