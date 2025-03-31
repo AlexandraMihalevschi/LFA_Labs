@@ -103,9 +103,9 @@ The primary objectives of this laboratory work were:
 
 1. Write and cover what regular expressions are, what they are used for;
 
-2. Below you will find 3 complex regular expressions per each variant. Take a variant depending on your number in the list of students and do the following:
+2. Take a variant depending on your number in the list of students and do the following:
 
-3. Write a code that will generate valid combinations of symbols conform given regular expressions (examples will be shown). Be careful that idea is to interpret the given regular expressions dinamycally, not to hardcode the way it will generate valid strings. You give a set of regexes as input and get valid word as an output
+3. Write a code that will generate valid combinations of symbols conform given regular expressions (examples will be shown).
 
 4. In case you have an example, where symbol may be written undefined number of times, take a limit of 5 times (to evade generation of extremely long combinations);
 
@@ -113,7 +113,7 @@ The primary objectives of this laboratory work were:
 
 ## Implementation Description
 
-The provided regex generator code is a practical demonstration of how regular expressions can be parsed and used to generate valid strings based on a given regex pattern. This approach not only deepens understanding of regular expressions but also showcases how such patterns can be evaluated programmatically. The implementation handles multiple regex constructs, including groups, repetition, the OR operator, and a power operator.
+The regex generator code is a practical demonstration of how regular expressions can be parsed and used to generate valid strings based on a given regex pattern. This approach not only deepens understanding of regular expressions but also showcases how such patterns can be evaluated programmatically. The implementation handles multiple regex constructs, including groups, repetition, the OR operator, and a power operator.
 
 #### **Code analysis**
 
@@ -364,8 +364,14 @@ Output:
 
 This lab provided me with a deeper understanding of regular expressions and their practical applications in Python. The ability to generate random strings based on a given regex pattern is a powerful tool for testing and validating various scenarios. The flexibility of the code allows for the generation of strings that adhere to complex patterns, making it a valuable tool for testing and validating systems that rely on regular expressions. The code's modularity and extensibility make it a useful starting point for more advanced projects involving regular expressions. Overall, this lab has enhanced my understanding of regular expressions and their practical applications in Python.
 
+In addition, the hands-on experience allowed me to see the immediate impact of each component of a regular expression. Breaking the problem down—managing grouping, repetition, and alternation—showed me the importance of precision and attention to detail in programming. As I modified and experimented with different regex patterns, I grew more confident in my ability to predict the output and understand the underlying mechanics of the code.
+
+Furthermore, working on this project highlighted the beauty and ingenuity of regular expressions. I came to appreciate how a simple set of rules and symbols can be combined in numerous ways to solve complex text processing challenges. This deeper dive into pattern matching has not only enriched my technical skills but also inspired me to explore more advanced topics within computer science and automation.
+
+Overall, the lab not only bolstered my proficiency with Python's regex functionalities but also encouraged creative problem solving. I now feel better equipped to apply these concepts to real-world applications, whether it's validating user inputs, parsing large datasets, or automating routine tasks. This enriched understanding of regular expressions and their practical significance will undoubtedly serve as a cornerstone for my future projects.
+
 ## References
 
 - Laboratory work guide - https://github.com/filpatterson/DSL_laboratory_works
 - Python documentation - https://docs.python.org/3/
-- Tutorial on lexer in Python - https://medium.com/@pythonmembers.club/building-a-lexer-in-python-a-tutorial-3b6de161fe84
+- Documentation on re module in Python - https://docs.python.org/3/library/re.html
