@@ -5,370 +5,279 @@
 
 ## Theory
 
-Regular expressions, commonly known as regex, are powerful tools used for pattern matching and manipulation in strings. They are widely utilized in programming, text processing, data validation, and even data scraping to search, match, extract, and replace text based on defined patterns. A regex defines a search pattern using a combination of literal characters and metacharacters, allowing users to express complex text rules concisely. Regular expressions are highly versatile, providing unmatched flexibility in handling text and string operations, but they can be challenging to master due to their cryptic syntax. However, once mastered, regex can significantly enhance the efficiency of text-based tasks. In this laboratory work, I will explore the fundamental concepts of regular expressions, their syntax, and their applications in various programming languages. I will also discuss the history and evolution of regular expressions, their components, and their significance in the field of computer science.
+Chomsky Normal Form (CNF) is an important representation of context-free grammars used in the fields of compiler construction, formal language theory, and automated parsing. The process of converting a grammar to CNF is essential for simplifying certain algorithms, especially those related to parsing, such as the CYK (Cocke-Younger-Kasami) algorithm. In CNF, each production rule in a grammar must follow one of two strict forms: either a non-terminal producing exactly two non-terminals (A → BC) or a non-terminal producing a single terminal (A → a). The only exception is the start symbol, which may produce the empty string (ε) under specific conditions. This standardization allows algorithms to operate more efficiently and consistently.
 
-### History and Evolution of Regular Expressions
+A context-free grammar (CFG) is said to be in **Chomsky Normal Form** if all production rules conform to one of the following forms:
 
-The concept of regular expressions was introduced in the 1950s by mathematician Stephen Kleene, who developed a notation to describe regular languages. The term "regular expression" itself was coined as part of automata theory and formal language theory. Ken Thompson later implemented regex in text editors for early Unix systems, which significantly influenced the popularity of regular expressions in computer science. Over time, support for regular expressions expanded across programming languages, making it a fundamental tool for pattern matching.
+- A → BC, where A, B, and C are non-terminal symbols and neither B nor C is the start symbol,
+- A → a, where A is a non-terminal and a is a terminal,
+- S → ε, where S is the start symbol and ε is the empty string (only allowed if ε is in the original language).
 
-### Components of Regular Expressions
+One of the most powerful theoretical results associated with CNF is the **language preservation theorem**, which states:
 
-1.  **Literals**: These are ordinary characters that match themselves. For instance, the regex "hello" matches the string "hello" exactly. Literals can include letters, digits, and symbols that are not treated as special characters by the regex engine. For example, "hello" matches "hello", "Hello", and "h3llo".
+> _For every context-free grammar G, there exists a grammar G′ in Chomsky Normal Form such that L(G) = L(G′), except possibly for the inclusion or exclusion of the empty string ε._
 
-2.  **Metacharacters**: These are special characters that define the behavior of the regex pattern. For example:
+This theorem guarantees that transforming a grammar into CNF does not alter the language it generates, making it an equivalence-preserving transformation. This is crucial for correctness in compilers and formal verification systems.
 
-    - `.`: Matches any character except a newline. For instance, "c.t" matches "cat", "cot", or "cut".
+The conversion of a general context-free grammar to CNF involves multiple transformation steps. First, ε-productions are eliminated. These are production rules that allow a non-terminal to produce the empty string. Removing them involves identifying nullable non-terminals and updating the grammar so that it preserves the original language without relying on ε. Following that, unit productions are removed. These are rules where one non-terminal leads directly to another, such as A → B. Such rules can be redundant or cause infinite loops, so they are replaced by copying the corresponding rules of the target non-terminal. Finally, all remaining rules are checked to ensure they adhere to the CNF format. If any rule violates the format, it's replaced with two or more rules that adhere to the CNF format. This process ensures that the grammar is in CNF, making it easier to analyze and manipulate for various applications.
 
-    - `^`: Anchors the pattern to the start of the string, ensuring the match only occurs at the beginning.
+Another necessary step in the process is eliminating non-productive and inaccessible symbols. Non-productive symbols are those that cannot derive any terminal string and thus do not contribute to the generation of valid strings in the language. Inaccessible symbols, on the other hand, are never reached from the start symbol and therefore have no effect on the language. Both types of symbols are removed to streamline the grammar and reduce unnecessary complexity. Finally, the grammar is transformed into CNF by replacing each production rule with a sequence of rules that adhere to the CNF format. This process ensures that the grammar is in a standard and efficient form, making it easier to analyze and manipulate.
 
-    - `$`: Anchors the pattern to the end of the string, ensuring the match only occurs at the end.
+Once the grammar is simplified, the next phase involves adjusting the production rules to comply with CNF format. This includes replacing terminals in rules that contain both terminals and non-terminals with new non-terminal variables that represent those terminals. For instance, if a rule contains a terminal like 'a' in the middle of a production, it is replaced with a new non-terminal such as T1, and a new rule T1 → a is added. In addition, productions with more than two symbols on the right-hand side are binarized by introducing new intermediate variables. This ensures that all rules either have one terminal or two non-terminals on the right-hand side. Finally, any remaining non-terminal symbols that have only one production rule are replaced with their corresponding terminal symbols. This final step ensures that all non-terminals in the grammar have at least two production rules, adhering to the strict CNF format.
 
-    - `*`: Matches zero or more occurrences of the preceding character, making it highly versatile.
+In addition to the practical advantages and implementation details already discussed, there are several critical theoretical aspects of CNF that further its utility in formal language theory and computational applications.
 
-    - `+`: Matches one or more occurrences of the preceding character.
+1. Foundations and Historical Perspective
+   CNF was developed as a standard form that simplifies the structure of context-free grammars while preserving their generative capacity. Its formulation was instrumental in the development of parsing algorithms—most notably, the CYK (Cocke-Younger-Kasami) algorithm—which exploits the binary branching structure of CNF grammars for efficient membership testing. In the early days of compiler design, having a grammar with uniform and predictable rule formats significantly lowered the complexity of syntax analysis.
 
-    - `?`: Matches zero or one occurrence of the preceding character, often used for optional characters.
+2. Formal Constraints and Structural Uniformity
+   The strict forms allowed in CNF (A → BC and A → a, with an allowance for S → ε) impose a regular structure on grammars that is not present in more general forms. This uniformity results in several theoretical benefits:
 
-    - `|`: Acts as a logical OR, allowing one of multiple options to match. For example, "dog|cat" matches either "dog" or "cat".
+   - Deterministic Parsing: The binary format reduces ambiguity and aids in constructing deterministic parsers.
+   - Complexity Reduction: Many problems related to context-free languages, such as checking membership or emptiness, have simpler algorithms when the grammar is in CNF.
+   - Language Equivalence: Despite the transformations applied during conversion, CNF preserves the language generated by the original grammar (aside from the possible exclusion of the empty string when it is not allowed by CNF). This preservation is a non-trivial theoretical guarantee, with rigorous proofs rooted in automata theory.
 
-3.  **Character Classes and Ranges**: Character classes allow matching a set of characters. Ranges are defined within square brackets:
+3. Conversion Complexity and Algorithms
+   The process of converting an arbitrary context-free grammar to CNF typically involves several computationally intensive steps:
 
-    - `[a-z]`: Matches any lowercase letter from a to z.
+   - Epsilon Production Elimination: Identifying nullable symbols requires a fixed-point algorithm that iteratively updates the set of non-terminals capable of deriving an empty string. Although this may seem computationally expensive, it is guaranteed to converge in a finite number of steps since the number of non-terminals is finite.
+   - Unit Production Removal: This step involves the transitive closure computation over the unit production relation. The procedure ensures that any chain of unit productions is replaced by direct productions, thus avoiding redundant derivations.
+     Binarization: For productions with more than two non-terminal symbols, new non-terminal variables (often called intermediate symbols) are introduced to systematically reduce right-hand sides to binary forms. The creation of these new symbols maintains the language’s integrity while conforming to CNF constraints.
 
-    - `[A-Z]`: Matches any uppercase letter from A to Z.
+4. Theoretical Implications for Parsing Algorithms
+   One of the primary motivations for converting grammars to CNF is its direct applicability to the CYK algorithm, which operates in O(n^3) time for an input string of length n. In CNF, every production is structured so that each derivation step of a string corresponds to a binary split, thereby allowing dynamic programming techniques to efficiently determine if the string can be generated by the grammar. This efficiency is crucial in applications such as natural language processing and compiler construction, where parsing speed can be a significant bottleneck.
 
-    - `[0-9]`: Matches any digit from 0 to 9.
+5. Relations to Other Normal Forms
+   CNF is one of several normal forms for context-free grammars. Others, like Greibach Normal Form (GNF), emphasize different properties—such as the form A → aα, where α is a (possibly empty) string of non-terminals—to facilitate top-down parsing. While GNF is particularly useful for constructing recursive descent parsers, CNF’s binary production structure is more amenable to bottom-up parsing techniques and thus showcases the interplay between grammar normalization and parsing methodology.
 
-    - `[^a-z]`: Negates the match, matching any character except lowercase letters.
+6. Practical Consequences in Compiler Construction
+   Modern compilers leverage the theoretical properties of CNF indirectly through parser generators that optimize for efficiency and correctness. The intermediate representation of grammars in CNF allows for error-checking, conflict resolution, and better support for optimizations during syntax analysis. This structured format also facilitates formal verification of the parser’s correctness, a key aspect in safety-critical systems.
 
-    - Predefined character classes include:
+By deepening our understanding of these theoretical aspects, we gain further insight into why CNF remains a cornerstone in the study of context-free grammars and why its systematic conversion process (as implemented in the GrammarCNFConverter class) is both practically significant and theoretically justified.
 
-      - `\d`: Matches any digit (equivalent to [0-9]).
+The Python implementation of this process, through a class named `GrammarCNFConverter`, allows these steps to be executed systematically. The class receives the grammar's non-terminals, terminals, production rules, and start symbol, and then applies each transformation in sequence. After conversion, the grammar is guaranteed to be in CNF format, which is suitable for use in further computational analysis or algorithmic applications. This class serves as a fundamental tool for preparing context-free grammars for various computational tasks. The class is designed to be flexible and adaptable, allowing for customization and integration into different computational contexts.
 
-      - `\w`: Matches any word character (alphanumeric and underscore).
+This project demonstrates the practical application of theoretical concepts in formal language theory. By implementing the conversion to CNF programmatically, it becomes possible to handle more complex grammars efficiently and prepare them for processing in real-world scenarios such as compiler design and language processing systems. The structured approach to grammar conversion also reinforces a deeper understanding of the underlying principles of context-free grammars and their transformations.
 
-      - `\s`: Matches any whitespace character (spaces, tabs, newlines).
-
-4.  **Grouping and Capturing**: Parentheses `()` group patterns together and capture matched substrings. For example, `(\d{3})-(\d{4})` matches phone numbers like 123-4567 and captures groups. Capturing groups allow retrieval of specific parts of the match. Non-capturing groups, `(?:pattern)`, group without storing the match. They are useful for grouping without capturing.
-
-5.  **Quantifiers**: Specify how many times a character or group should match. Common quantifiers include:
-
-    - `{n}`: Matches exactly n times.
-
-    - `{n,}`: Matches at least n times.
-
-    - `{n,m}`: Matches between n and m times.
-
-### Using Regular Expressions in Programming
-
-In Python, the `re` module provides powerful regex capabilities. Here are some common functions:
-
-- `re.match`: Determines if the pattern matches at the start of the string.
-
-- `re.search`: Finds the first match of the pattern in the string.
-
-- `re.findall`: Returns a list of all matches in the string.
-
-- `re.sub`: Replaces matched patterns with a replacement string.
-
-- `re.split`: Splits a string by occurrences of a pattern.
-
-### Advanced Concepts in Regular Expressions
-
-Regular expressions also support backreferences, lookahead, and lookbehind assertions. These advanced features enhance the expressiveness of regex patterns. Backreferences allow referencing previously matched groups, while lookahead and lookbehind assertions enable conditional matching based on surrounding text. These features are particularly useful in complex pattern matching scenarios:
-
-- **Backreferences**: Refer to previously matched groups using `\1`, `\2`, etc., enabling repeated patterns. For instance, `(\w+)\s+\1` matches repeated words.
-
-- **Lookahead and Lookbehind**: Allow matching based on the surrounding text without consuming it. They are useful for complex pattern matching. For example:
-
-  - Positive Lookahead: `(?=pattern)` ensures the match is followed by the pattern.
-
-  - Negative Lookahead: `(?!pattern)` ensures the match is NOT followed by the pattern.
-
-  - Positive Lookbehind: `(?<=pattern)` ensures the match is preceded by the pattern.
-
-  - Negative Lookbehind: `(?<!pattern)` ensures the match is NOT preceded by the pattern.
-
-### Regex Generator Code Example
-
-The provided regex generator code demonstrates how regex patterns can be interpreted to generate valid strings. It handles groups, repetition, power operators, and OR operators. This example illustrates how regex logic can be used creatively, not only for pattern matching but also for string generation. By understanding the core concepts of regular expressions, developers can craft efficient, powerful patterns for text manipulation. The code snippet showcases the versatility of regex patterns in various programming languages and applications. The code snippet is a testament to the power and versatility of regular expressions in text processing. It showcases how regex patterns can be interpreted to generate valid strings, highlighting their versatility in text manipulation.
-
-### Conclusion
-
-Regular expressions are indispensable tools in software development and data processing. Despite their complexity, mastering regex unlocks unparalleled capabilities for parsing, validating, and transforming text. Whether filtering logs, extracting data, or validating inputs, regex is a versatile tool that can handle a wide array of text-based tasks efficiently. By understanding the core concepts and mastering the syntax, developers can harness the full potential of regex to streamline their workflows and enhance the robustness of their applications.
+Chomsky Normal Form is more than a syntactic restriction on grammar structures—it is a foundational principle in the theory of computation, automata, and language design. Its role in algorithm design, parsing theory, formal verification, and NLP reflects the deep interplay between theory and practice. Mastering CNF means mastering the structural heart of context-free grammars, and the ability to convert arbitrary grammars into CNF is a crucial skill in both academic and applied computer science domains.
 
 ## Objectives
 
 The primary objectives of this laboratory work were:
 
-1. Write and cover what regular expressions are, what they are used for;
-
-2. Take a variant depending on your number in the list of students and do the following:
-
-3. Write a code that will generate valid combinations of symbols conform given regular expressions (examples will be shown).
-
-4. In case you have an example, where symbol may be written undefined number of times, take a limit of 5 times (to evade generation of extremely long combinations);
-
-5. Bonus point: write a function that will show sequence of processing regular expression (like, what you do first, second and so on)
+1. Learn about Chomsky Normal Form (CNF).
+2. Get familiar with the approaches of normalizing a grammar.
+3. Implement a method for normalizing an input grammar by the rules of CNF.
+   The implementation needs to be encapsulated in a method with an appropriate signature (also ideally in an appropriate class/type).
+   The implemented functionality needs executed and tested.
+4. BONUS point would be given if the student will make the aforementioned function to accept any grammar, not only the one from the student's variant.
 
 ## Implementation Description
 
-The regex generator code is a practical demonstration of how regular expressions can be parsed and used to generate valid strings based on a given regex pattern. This approach not only deepens understanding of regular expressions but also showcases how such patterns can be evaluated programmatically. The implementation handles multiple regex constructs, including groups, repetition, the OR operator, and a power operator.
+The implementation of the Chomsky Normal Form (CNF) conversion involves a series of transformations that ensure the grammar is in a standard form suitable for various computational tasks. The process involves several steps.
 
-#### **Code analysis**
+This Python project implements a tool for converting a context-free grammar (CFG) into **Chomsky Normal Form (CNF)**. CNF is a normalized structure of CFGs that enables efficient parsing and theoretical analysis. The program facilitates this transformation by handling all the necessary intermediate steps: removing ε-productions, unit productions, non-productive symbols, and inaccessible symbols, and finally converting the grammar into binary productions with terminal isolation.
 
-1.  **Imports and Configuration:** The script begins by importing two essential modules: `re` for regex handling (though not directly used in the generation process) and `random` for generating random repetitions and selections. A constant `MAX_REPETITION` is set to control how many times a pattern can be repeated, preventing excessively long or infinite strings.
+### Class: `GrammarCNFConverter`
 
-2.  **The** `generate_strings_from_regex` **Function:** This function serves as the entry point, accepting a regex string and invoking the nested `parse_expression` function to handle pattern interpretation and string generation. The output is a list containing valid strings that match the input regex.
+#### Initialization
 
-3.  **The** `parse_expression` **Function:** This core function recursively parses the regex expression:
+```python
+def __init__(self, non_terminals, terminals, productions, start_symbol)
+```
 
-    - It iterates over the input expression, analyzing each character to determine its role.
+- `non_terminals`: A set of non-terminal symbols (`VN`)
+- `terminals`: A set of terminal symbols (`VT`)
+- `productions`: A dictionary where each non-terminal maps to a list of production rules (right-hand side as a list of symbols)
+- `start_symbol`: The initial symbol of the grammar (`S`)
 
-    - **Groups:** When encountering a '(', the function locates the matching closing parenthesis using `find_closing_parenthesis` to isolate the subexpression, recursively generating a string based on the contained pattern.
+### 1. **Eliminate ε-Productions**
 
-    - **Repetition (Metacharacters \* + ?):** The function handles quantifiers by determining the number of repetitions and appending the result accordingly.
+```python
+def eliminate_epsilon_productions(self)
+```
 
-    - **OR Operator (|):** The logic handles alternation by accumulating options between '|' symbols and selecting one randomly.
+- Identifies all **nullable** non-terminals (those that can derive ε).
+- Rewrites productions by generating all possible subsets of productions excluding ε.
+- Ensures ε is only retained when it is necessary for the start symbol.
 
-    - **Power Operator (^):** This unique feature multiplies the preceding pattern a specified number of times.
+#### Why?
 
-    - **Literal Characters:** If the character is not a special operator, it is treated as a literal and appended to the result.
+ε-productions can make parsing unpredictable. Removing them simplifies grammar structure.
 
-4.  **The** `find_closing_parenthesis` **Function:** This helper function identifies matching parentheses by counting nested pairs, preventing errors from unbalanced expressions.
+### 2. **Eliminate Unit Productions**
 
-5.  **Generating Strings:** After parsing, the script calls the generator twice to produce two example strings. The results demonstrate how different patterns can produce varied outputs based on repetition and alternation.
+```python
+def eliminate_unit_productions(self)
+```
 
-#### **Strengths and Limitations**
+- Finds all **unit pairs** (e.g., `A → B`).
+- Expands these pairs by copying the production rules from target non-terminals (`B`) into the source (`A`).
+- Removes original unit productions from the grammar.
 
-The regex generator code efficiently handles basic regex patterns and introduces a unique power operator. However, it has limitations:
+#### Why?
 
-- It does not fully parse or respect complex regex constructs, such as character classes, lookahead, and lookbehind assertions.
+Unit productions can introduce unnecessary recursion and complexity.
 
-- Infinite repetition (e.g., unbounded \*) can cause long or hanging executions without a MAX_REPETITION cap.
+### 3. **Eliminate Non-Productive Symbols**
 
-#### Key Components of the Code
+```python
+def eliminate_non_productive_symbols(self)
+```
 
-1. **`generate_strings_from_regex` Function**:
-   This is the main function responsible for parsing the regular expression and generating strings based on it. It contains a helper function `parse_expression` which recursively processes the regex string.
+- Detects **productive non-terminals** (those that eventually produce terminal strings).
+- Filters out rules and symbols that never lead to a valid string of terminals.
 
-   - **Input**: A regex pattern provided by the user (e.g., `(ab|cd)*`).
-   - **Output**: A list of valid strings that match the given regex pattern.
+#### Why?
 
-2. **`parse_expression` Function**:
-   This function is responsible for parsing different components of the regex and generating the corresponding string.
+Non-productive symbols serve no functional purpose in generating valid strings.
 
-   - **Group Handling**: Parentheses `()` in regex are treated as grouping. When the parser encounters a group, it looks for the closing parenthesis and recursively processes the inner expression.
+### 4. **Eliminate Inaccessible Symbols**
 
-     ```python
-     if char == "(":  # Handle groups
-         end_idx = find_closing_parenthesis(expression, index)
-         sub_exp = expression[index + 1:end_idx]
-         index = end_idx
-         sub_result = parse_expression(sub_exp)
-         result.append(random.choice(sub_result))
-     ```
+```python
+def eliminate_inaccessible_symbols(self)
+```
 
-   - **Repetition Operators**: Operators like `*`, `+`, and `?` modify the number of repetitions for the preceding element.
+- Traverses the grammar starting from the start symbol.
+- Removes symbols that are never reached in any derivation.
 
-     - `*` allows zero or more repetitions.
-     - `+` requires one or more repetitions.
-     - `?` makes the preceding element optional (zero or one repetition).
+#### Why?
 
-     ```python
-     elif char in "*+?":  # Handle repetition
-         prev = result.pop() if result else ""
-         if char == "*":
-             result.append(prev * random.randint(0, MAX_REPETITION))
-         elif char == "+":
-             result.append(prev * random.randint(1, MAX_REPETITION))
-         elif char == "?":
-             result.append(prev if random.choice([True, False]) else "")
-     ```
+Inaccessible symbols are effectively dead code and clutter the grammar.
 
-   - **Alternation (`|`)**: The OR operator in regex allows for one of several options. The parser processes all the alternatives and selects one at random.
+### 5. **Convert to CNF**
 
-     ```python
-     elif char == "|":  # Handle OR operator correctly
-         options = []
-         current_option = ""
-         options.append(result.pop() if result else "")
-         while index < len(expression) and expression[index] != ")":
-             if expression[index] == "|":
-                 index += 1  # Skip the | character
-                 current_option = ""
-                 while index < len(expression) and expression[index] != "|" and expression[index] != ")":
-                     current_option += expression[index]
-                     index += 1
-                 options.append(current_option)
-             else:
-                 index += 1
-         result.append(random.choice(options))
-     ```
+```python
+def convert_to_cnf(self)
+```
 
-   - **Literal Characters**: Any character that is not part of a special regex operation is treated as a literal and is directly added to the result string.
-     ```python
-     else:  # Literal characters
-         result.append(char)
-     ```
+- **Terminal Isolation**: Terminal symbols in productions longer than one symbol are replaced by new non-terminals (e.g., `T1 → a`).
+- **Binarization**: Productions with more than two symbols are broken down into binary rules using intermediate non-terminals (e.g., `A → B C D` becomes `A → B X1`, `X1 → C D`).
 
-3. **Helper Functions**:
+#### Why?
 
-   - **`find_closing_parenthesis`**: This function helps find the corresponding closing parenthesis for a given opening parenthesis in the regex. It's essential for handling groups correctly.
-     ```python
-     def find_closing_parenthesis(expression, start_index):
-         open_count = 1
-         for i in range(start_index + 1, len(expression)):
-             if expression[i] == "(":
-                 open_count += 1
-             elif expression[i] == ")":
-                 open_count -= 1
-                 if open_count == 0:
-                     return i
-         raise ValueError("Unmatched parenthesis in expression")
-     ```
+CNF requires all productions to be of the form:
 
-4. **Randomness**:
-   The function uses randomness at various points:
+- `A → a`
+- `A → B C`
 
-   - When deciding which option to choose in the alternation (`|`).
-   - When determining how many repetitions to apply for the `*`, `+`, and `?` operators.
-     This introduces variability in the output, so each time the function is run, it generates different valid strings based on the regex pattern.
+This format is optimal for algorithms like CYK.
 
-5. **Input and Output**:
+### `convert()`
 
-   - **Input**: The user is prompted to enter a regex pattern.
-   - **Output**: The program generates two random valid strings that match the given pattern and prints them.
+A wrapper method that runs all transformation steps in the proper order:
 
-   Example:
+```python
+def convert(self):
+    self.eliminate_epsilon_productions()
+    self.eliminate_unit_productions()
+    self.eliminate_non_productive_symbols()
+    self.eliminate_inaccessible_symbols()
+    self.convert_to_cnf()
+```
 
-   ```python
-   regex_input = input("Enter a regular expression: ")
-   valid_strings = [generate_strings_from_regex(regex_input) for _ in range(2)]
-   print("Generated Strings:")
-   for s in valid_strings:
-       print(s)
-   ```
+### `print_grammar()`
+
+Prints the grammar in a readable format:
+
+- Displays non-terminals, terminals, start symbol, and all production rules.
+
+```python
+def print_grammar(self)
+```
+
+### `input_grammar()`
+
+- Prompts the user to input grammar components interactively.
+- Supports standard CFG input formats with `;` as rule separator and `|` as alternative separator.
+- Converts input into appropriate internal data structures.
+
+Example Input:
+
+```
+S->aB|bA|B; A->b|aD|AS|bAB|ε
+```
+
+The script supports two modes:
+
+- **Example Grammar**: Uses a predefined grammar with ε and complex productions.
+- **Custom Grammar**: Allows the user to define a CFG interactively.
+
+```python
+if __name__ == "__main__":
+    ...
+```
 
 ## Expected Results
 
-The expected results of running this code will depend on the regular expression (regex) provided by the user. The code is designed to generate two valid strings based on the given regex pattern. Here’s a breakdown of what each type of regex component would lead to in terms of output:
-
-### 1. **Literal Characters**:
-
-If the regex consists only of literal characters (e.g., `abc`), the output will directly match the input string.
-
-**Example:**
-
-- Input: `abc`
-- Output: `abc` (or any variation if there are random elements like repetition, but here it’s straightforward).
-
-### 2. **Groups (`()`)**:
-
-When the regex includes groups (e.g., `(ab|cd)`), the program will generate a string that randomly selects one of the options within the group.
-
-**Example:**
-
-- Input: `(ab|cd)`
-- Output: Could be either `ab` or `cd`, depending on the random choice made.
-
-### 3. **Repetition Operators (`*`, `+`, `?`)**:
-
-- `*` means "zero or more" repetitions of the preceding element.
-- `+` means "one or more" repetitions of the preceding element.
-- `?` means "zero or one" repetition of the preceding element.
-
-The program will randomly generate a number of repetitions between 0 and `MAX_REPETITION`, or between 1 and `MAX_REPETITION` (in the case of `+`), or even omit the repetition entirely (in the case of `?`).
-
-**Example:**
-
-- Input: `a*`
-- Output: A string containing from 0 to `MAX_REPETITION` `a`s, such as `aaaa`, `a`, or `""` (empty string).
-
-- Input: `a+`
-- Output: A string containing 1 to `MAX_REPETITION` `a`s, such as `aaa` or `aaaa`.
-
-- Input: `a?`
-- Output: A string containing either 0 or 1 `a`, such as `a` or `""` (empty string).
-
-### 4. **Alternation (`|`)**:
-
-The `|` operator allows for a choice between different options. The program will randomly choose one of the options.
-
-**Example:**
-
-- Input: `ab|cd`
-- Output: Could be either `ab` or `cd`.
-
-### 5. **Power Operator (`^`)**:
-
-The `^` operator specifies that the preceding element should be repeated a certain number of times (defined by the number after `^`). The program will use this to multiply the previous element by a given power.
-
-**Example:**
-
-- Input: `a^3`
-- Output: The string `aaa`, as `a` is repeated 3 times.
-
-### Expected Output (Example Run):
-
-For a given input regex like `(ab|cd)*a+`, the expected output might look like this:
-
-**Input**: `(ab|cd)*a+`
-
-- The program will generate strings that:
-  - Choose either `ab` or `cd` repeatedly (zero or more times due to `*`).
-  - End with one or more `a`s (due to `a+`).
-
-**Possible Outputs**:
-
-- `abca`
-- `cdabaaa`
-- `ab`
-- `abcaaca`
-
-These outputs are random, so each run will likely generate different strings that match the given regex.
+The expected results of running this code are as follows: The user is prompted to input a grammar in the form of a string. The program then processes this input and outputs the grammar in Chomsky Normal Form (CNF). The output will be in the form of a dictionary, where each non-terminal maps to a list of production rules. Each rule is represented as a list of symbols.
 
 ## Output
 
-Input:
-
-    Enter a regular expression: M?N^2(O|P)^3Q*R+
-
-Output:
-
-    Generated Strings:
-    ['NNPPPQRRRR']
-    ['MNNOOOQQQRRRR']
+The output of the program will be a dictionary representing the grammar in CNF. Each non-terminal will be a key, and its value will be a list of production rules. Each production rule will be a list of symbols.
 
 Input:
 
-    Enter a regular expression: (H|i)(J|K)L*N?
+    Use example grammar? (y/n): y
+
+    Original Grammar:
+
+    --- Grammar ---
+    Non-terminals: {'D', 'C', 'S', 'A', 'B'}
+    Terminals: {'b', 'a'}
+    Start Symbol: S
+    Productions:
+    S → a B
+    S → b A
+    S → B
+    A → b
+    A → a D
+    A → A S
+    A → b A B
+    A → ε
+    B → a
+    B → b S
+    C → A B
+    D → B B
 
 Output:
 
-    Generated Strings:
-    ['HJLL']
-    ['iJLLLLLN']
+    Converted to Chomsky Normal Form:
 
-Input:
-
-    Enter a regular expression:  (X|Y|Z)^3 8+ (9|0)
-
-Output:
-
-    Generated Strings:
-    ['YYY 8 9']
-    ['YYY 8888 0']
+    --- Grammar ---
+    Non-terminals: {'S', 'T2', 'D', 'X3', 'A', 'T1', 'B'}
+    Terminals: {'b', 'a'}
+    Start Symbol: S
+    Productions:
+    D → B B
+    A → b
+    A → T1 D
+    A → A S
+    A → T2 B
+    A → T2 X3
+    A → T1 B
+    A → b
+    A → T2 A
+    A → a
+    A → T2 S
+    X3 → X3 B
+    T1 → a
+    T2 → b
+    S → T1 B
+    S → b
+    S → T2 A
+    S → a
+    S → T2 S
+    B → a
+    B → T2 S
 
 ## Conclusions
 
-This lab provided me with a deeper understanding of regular expressions and their practical applications in Python. The ability to generate random strings based on a given regex pattern is a powerful tool for testing and validating various scenarios. The flexibility of the code allows for the generation of strings that adhere to complex patterns, making it a valuable tool for testing and validating systems that rely on regular expressions. The code's modularity and extensibility make it a useful starting point for more advanced projects involving regular expressions. Overall, this lab has enhanced my understanding of regular expressions and their practical applications in Python.
+This lab provided me with a deeper understanding of Chomsky Normal Form (CNF) and its profound theoretical and practical implications in formal language processing. By engaging with the process of converting a general context-free grammar into CNF, I learned firsthand how methodically eliminating epsilon productions, unit productions, and even non-productive symbols can transform an otherwise unwieldy grammar into a uniform structure optimized for efficient parsing. The step-by-step transformations—especially the binarization of production rules—highlighted the significance of structured approaches in ensuring that algorithms, such as the CYK algorithm, operate correctly and effectively.
 
-In addition, the hands-on experience allowed me to see the immediate impact of each component of a regular expression. Breaking the problem down—managing grouping, repetition, and alternation—showed me the importance of precision and attention to detail in programming. As I modified and experimented with different regex patterns, I grew more confident in my ability to predict the output and understand the underlying mechanics of the code.
+Working through this process underscored the interplay between theory and practice. I came to appreciate that CNF is not merely a theoretical construct, but a practical tool that simplifies the design and implementation of compilers and interpreters. The experience sharpened my ability to analyze and manipulate grammars, reinforcing how careful attention to formal details can simplify complex problems. Moreover, experimenting with different grammars deepened my confidence in predicting and controlling the behavior of parsing algorithms, which is essential in many automated language processing tasks.
 
-Furthermore, working on this project highlighted the beauty and ingenuity of regular expressions. I came to appreciate how a simple set of rules and symbols can be combined in numerous ways to solve complex text processing challenges. This deeper dive into pattern matching has not only enriched my technical skills but also inspired me to explore more advanced topics within computer science and automation.
-
-Overall, the lab not only bolstered my proficiency with Python's regex functionalities but also encouraged creative problem solving. I now feel better equipped to apply these concepts to real-world applications, whether it's validating user inputs, parsing large datasets, or automating routine tasks. This enriched understanding of regular expressions and their practical significance will undoubtedly serve as a cornerstone for my future projects.
+In summary, this lab boosted my proficiency in both the theoretical underpinnings and the practical applications of CNF. It laid a strong foundation for future projects involving compiler design and formal language analysis, and it also inspired me to explore further into the optimization of algorithms that rely on formally structured grammars. This enriched understanding will undoubtedly serve as a cornerstone in my continued journey in advanced computer science and automation projects.
 
 ## References
 
