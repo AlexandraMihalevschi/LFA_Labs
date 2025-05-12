@@ -1,0 +1,299 @@
+import tkinter as tk
+import random
+
+# === PLAYER DATA ===
+
+player = {
+    "hp": 100,
+    "attack": 10,
+    "defense": 5,
+    "inventory": {}
+}
+
+current_room = "Docking Bay"
+
+# === ROOM LAYOUT ===
+
+rooms = {
+    "Docking Bay": {
+        "description": "\ud83d\udeaa Emergency lights flash across fractured panels. This is the ship\u2019s entry point\u2014and its last hope.",
+        "north": "Central Hub",
+        "east": "Cryochambers",
+        "west": "Medbay",
+        "down": "Cargo Hold"
+    },
+    "Central Hub": {
+        "description": "\ud83d\udcc1 The central node. Broken monitors display corrupted maps. Pulsing lights flicker sporadically.",
+        "south": "Docking Bay",
+        "north": "Research Lab"
+    },
+    "Research Lab": {
+        "description": "\ud83e\uddea Test tubes and scanners shattered. A metal claw twitches on the floor.",
+        "south": "Central Hub",
+        "north": "Observation Deck"
+    },
+    "Observation Deck": {
+        "description": "\ud83c\udf0c A view into infinity. The stars outside are calming\u2014if you ignore the cracks.",
+        "south": "Research Lab"
+    },
+    "Cargo Hold": {
+        "description": "\ud83d\udce6 Enormous containers drift in low gravity. Something hisses in the darkness.",
+        "up": "Docking Bay",
+        "east": "Crew Quarters"
+    },
+    "Crew Quarters": {
+        "description": "\ud83d\udece\ufe0f Disrupted beds and torn uniforms. Personal logs blink on abandoned terminals.",
+        "west": "Cargo Hold",
+        "down": "Escape Pods"
+    },
+    "Escape Pods": {
+        "description": "\ud83d\ude80 Empty pods dangle loosely. One is missing...",
+        "up": "Crew Quarters"
+    },
+    "Medbay": {
+        "description": "\ud83e\uddec A bloodstained surgical table. Medkits left half-used. Soft breathing echoes...",
+        "east": "Docking Bay",
+        "west": "AI Core"
+    },
+    "AI Core": {
+        "description": "\ud83e\udde0 You enter a chamber of humming quantum crystals. The main AI flickers on a cracked display.",
+        "east": "Medbay"
+    },
+    "Cryochambers": {
+        "description": "\u2744\ufe0f Frosty glass coffins. One is shattered open. Scratches on the inside.",
+        "west": "Docking Bay"
+    }
+}
+
+room_entities = {}
+
+# === CRAFTING SYSTEM ===
+
+class CraftableItem:
+    def __init__(self, name, ingredients, description):
+        self.name = name
+        self.ingredients = ingredients
+        self.description = description
+
+    def can_craft(self, inventory):
+        return all(inventory.get(i, 0) >= amt for i, amt in self.ingredients.items())
+
+    def craft(self, inventory):
+        if not self.can_craft(inventory):
+            return False
+        for item, amt in self.ingredients.items():
+            inventory[item] -= amt
+        inventory[self.name] = inventory.get(self.name, 0) + 1
+        return True
+
+    def describe(self):
+        ingredients = ', '.join([f"{k} x{v}" for k, v in self.ingredients.items()])
+        return f"{self.name} \u2014 {self.description} (Requires: {ingredients})"
+
+crafting_recipes = {
+    "Stim Pack": CraftableItem("Stim Pack", {"Bio Gel": 1, "Coolant Tube": 1}, "Restores 30 HP."),
+    "EMP Charge": CraftableItem("EMP Charge", {"Power Cell": 1, "Wiring": 2}, "Deals damage to robotic enemies."),
+    "Reinforced Plating": CraftableItem("Reinforced Plating", {"Steel Fragment": 3}, "Increases defense by +3 permanently."),
+    "Nano Vest": CraftableItem("Nano Vest", {"Nanofiber Mesh": 2, "Steel Fragment": 2}, "Boosts defense by +5."),
+    "Cryo Blade": CraftableItem("Cryo Blade", {"Cryo Crystal": 1, "Servo Motor": 1}, "Increases attack by +7."),
+    "AI Patch": CraftableItem("AI Patch", {"Neural Chip": 1, "Wiring": 1}, "Restores system integrity (Heals 20 HP).")
+}
+
+# === ENTITY GENERATION ===
+
+
+def generate_item():
+    item_pool = [
+        ("Bio Gel", "Organic healing compound."),
+        ("Coolant Tube", "Thermal regulator."),
+        ("Power Cell", "High-density energy source."),
+        ("Wiring", "Critical for electronics."),
+        ("Steel Fragment", "Metal hull shard."),
+        ("Cryo Crystal", "Supercooled energy core."),
+        ("Nanofiber Mesh", "Used for crafting lightweight armor."),
+        ("Servo Motor", "Can animate simple machines."),
+        ("Neural Chip", "Old AI fragment\u2014still blinking.")
+    ]
+    name, desc = random.choice(item_pool)
+    return {"name": name, "description": desc}
+
+def generate_enemy():
+    enemy_pool = [
+        ("Hostile Droid", 30, 10, 5),
+        ("Plasma Leech", 20, 8, 2),
+        ("Rogue Medbot", 25, 7, 6),
+        ("Security Drone MkII", 35, 12, 8),
+        ("Cryo Wraith", 40, 14, 3),
+        ("Mutated Crewman", 28, 9, 4)
+    ]
+    name, hp, atk, df = random.choice(enemy_pool)
+    return {"name": name, "hp": hp, "attack": atk, "defense": df}
+
+def generate_room_content(room):
+    if room not in room_entities:
+        room_entities[room] = {
+            "item": generate_item() if random.random() < 0.6 else None,
+            "enemy": generate_enemy() if random.random() < 0.4 else None
+        }
+
+def describe_room(room, log):
+    generate_room_content(room)
+    data = rooms[room]
+    log(f"\n=== {room} ===\n{data['description']}")
+    show_available_commands(room, log)
+    entity = room_entities[room]
+    if entity['enemy']:
+        e = entity['enemy']
+        log(f"\u26a0\ufe0f ENEMY: {e['name']} (HP: {e['hp']}, ATK: {e['attack']}, DEF: {e['defense']}) — Type 'fight' to engage.")
+    elif entity['item']:
+        item = entity['item']
+        log(f"\ud83d\udce6 ITEM: {item['name']} — {item['description']} — Type 'collect' to pick it up.")
+    else:
+        log("\ud83d\udd0d The room seems quiet... for now.")
+
+def show_available_commands(room, log):
+    directions = [d for d in rooms[room] if d != "description"]
+    log("\u27a1\ufe0f Paths: " + ', '.join(directions))
+    log("\ud83d\udcd8 Commands: move (north/south...), collect, fight, craft, inventory, help, quit")
+
+def collect_item(log):
+    item = room_entities[current_room].get('item')
+    if item:
+        name = item['name']
+        player['inventory'][name] = player['inventory'].get(name, 0) + 1
+        log(f"\u2705 Collected: {name}")
+        room_entities[current_room]['item'] = None
+        update_stats()
+    else:
+        log("\u274c No item to collect here.")
+
+def fight_enemy(log):
+    enemy = room_entities[current_room].get('enemy')
+    if not enemy:
+        log("\u274c No enemies in sight.")
+        return
+    while player['hp'] > 0 and enemy['hp'] > 0:
+        dmg_to_enemy = max(0, player['attack'] - enemy['defense'])
+        dmg_to_player = max(0, enemy['attack'] - player['defense'])
+        enemy['hp'] -= dmg_to_enemy
+        player['hp'] -= dmg_to_player
+        log(f"\ud83d\udde1\ufe0f You strike: {dmg_to_enemy} | Enemy HP: {max(enemy['hp'], 0)}")
+        log(f"\ud83d\udca5 It hits back: {dmg_to_player} | Your HP: {max(player['hp'], 0)}")
+    if player['hp'] <= 0:
+        log("\u2620\ufe0f You've been defeated. Game over.")
+    elif enemy['hp'] <= 0:
+        log("\ud83c\udf89 Enemy destroyed!")
+        room_entities[current_room]['enemy'] = None
+        if not room_entities[current_room]['item']:
+            drop = generate_item()
+            room_entities[current_room]['item'] = drop
+            log(f"\ud83c\udff1 Enemy dropped: {drop['name']}")
+        update_stats()
+
+
+
+def craft_item(log):
+    log("\ud83d\udee0\ufe0f Available Recipes:")
+    for item in crafting_recipes.values():
+        log(" - " + item.describe())
+    log("Type the exact item name to craft:")
+    def try_craft():
+        choice = craft_entry.get().strip()
+        recipe = crafting_recipes.get(choice)
+        if recipe:
+            if recipe.craft(player['inventory']):
+                log(f"\u2705 Crafted: {recipe.name}")
+                if recipe.name == "Stim Pack":
+                    player["hp"] = min(player["hp"] + 30, 100)
+                elif recipe.name == "Reinforced Plating":
+                    player["defense"] += 3
+                elif recipe.name == "Nano Vest":
+                    player["defense"] += 5
+                elif recipe.name == "Cryo Blade":
+                    player["attack"] += 7
+                elif recipe.name == "AI Patch":
+                    player["hp"] = min(player["hp"] + 20, 100)
+                update_stats()
+            else:
+                log("\u274c Not enough materials.")
+        else:
+            log("\u274c Invalid recipe.")
+        craft_popup.destroy()
+
+    craft_popup = tk.Toplevel(root)
+    craft_popup.title("Craft an Item")
+    tk.Label(craft_popup, text="Enter item name:").pack(padx=10, pady=5)
+    craft_entry = tk.Entry(craft_popup)
+    craft_entry.pack(padx=10)
+    craft_entry.focus()
+    tk.Button(craft_popup, text="Craft", command=try_craft).pack(pady=10)
+
+def show_inventory(log):
+    log("\ud83c\udf92 Inventory:")
+    if not player['inventory']:
+        log(" - Empty")
+    for item, qty in player['inventory'].items():
+        log(f" - {item}: {qty}")
+
+# === GUI SETUP ===
+
+def update_stats():
+    stats_var.set(f"HP: {player['hp']} | ATK: {player['attack']} | DEF: {player['defense']}")
+
+def handle_command():
+    global current_room
+    cmd = input_box.get().strip().lower()
+    input_box.delete(0, tk.END)
+
+    if cmd in ['north', 'south', 'east', 'west', 'up', 'down']:
+        if cmd in rooms[current_room]:
+            current_room = rooms[current_room][cmd]
+            describe_room(current_room, log)
+        else:
+            log("\u274c You can't go that way.")
+    elif cmd == "collect":
+        collect_item(log)
+    elif cmd == "fight":
+        fight_enemy(log)
+    elif cmd == "craft":
+        craft_item(log)
+    elif cmd == "inventory":
+        show_inventory(log)
+    elif cmd == "help":
+        show_available_commands(current_room, log)
+    elif cmd == "quit":
+        root.destroy()
+    else:
+        log("\u2753 Unknown command. Type 'help' for options.")
+
+# Function to log messages to the output window
+def log(message):
+    output_box.config(state=tk.NORMAL)
+    output_box.insert(tk.END, message + "\n")
+    output_box.see(tk.END)
+    output_box.config(state=tk.DISABLED)
+
+# Create the main window
+root = tk.Tk()
+root.title("Starship Descent")
+
+# Create output box (game text)
+output_box = tk.Text(root, height=25, width=80, bg="black", fg="white", wrap="word", state=tk.DISABLED)
+output_box.pack(padx=10, pady=10)
+
+# Create input box (for player commands)
+input_box = tk.Entry(root, width=80)
+input_box.pack(padx=10, pady=5)
+input_box.bind("<Return>", lambda event: handle_command())
+
+# Create a label to show player stats
+stats_var = tk.StringVar()
+stats_label = tk.Label(root, textvariable=stats_var, font=("Helvetica", 12))
+stats_label.pack(pady=5)
+
+# Start the game
+update_stats()
+describe_room(current_room, log)
+
+# Start the GUI event loop
+root.mainloop()
